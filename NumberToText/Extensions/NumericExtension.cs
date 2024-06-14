@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NumberToText.Shared.Static;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -48,63 +49,71 @@ namespace NumberToText.Extensions
             return digistsCount;
         }
 
-        private static string IntegerNumberInWords<T>(T num, sbyte numberOfDigits) where T : struct
+        private static string ProcessGroup(long number)
+        {
+            StringBuilder sb = new StringBuilder();
+            
+            if (number >= 100)
+            {
+                long hundred = number / 100;
+                if (hundred > 1)
+                {
+                    sb.Append(NumberToWordsResources.Ones[hundred]);
+                }
+                sb.Append(NumberToWordsResources.Handreds[hundred]);
+                sb.Append(" ");
+                number %= 100;
+            }
+
+            if (number >= 20)
+            {
+                sb.Append(NumberToWordsResources.Tens[number / 10]);
+                sb.Append(" ");
+                number %= 10;
+            }
+            else if (number >= 10)
+            {
+                sb.Append(NumberToWordsResources.Teens[number - 10]);
+                sb.Append(" ");
+                number = 0;
+            }
+
+            if (number > 0)
+            {
+                sb.Append(NumberToWordsResources.Ones[number]);
+                sb.Append(" ");
+            }
+
+            return sb.ToString();
+
+        }
+
+        private static string IntegerNumberInWords<T>(T num) where T : struct
         {
             long number = Convert.ToInt64(num);
             
             if (number == 0)
             {
-                return _units[number];
+                return NumberToWordsResources.Ones[number];
             }
 
             if (number < 0)
             {
-                return "минус " + IntegerNumberInWords(-number, numberOfDigits);
+                return "минус " + IntegerNumberInWords(-number);
             }
 
             StringBuilder words = new StringBuilder();
-
+            int groupIndex = 0;
 
             while (number > 0)
             {
-                long comparisonNumber = (long)Math.Pow(10, numberOfDigits - 1);
-                long thousands = numberOfDigits / 1_000;
-                long hundreds = numberOfDigits / 100;
-
-                if (hundreds > 20 && hundreds < 100)
+                if (number % 1000 != 0)
                 {
-                    long firstDigitOfNumber = number / comparisonNumber;
-                    words.Append(_tens[firstDigitOfNumber]);
-                    words.Append(" ");
-                    // Уменьшаем число
-                    number %= comparisonNumber;
+                    words.Insert(0, 
+                        $"{ProcessGroup(number % 1000)} {NumberToWordsResources.Thousands[groupIndex]} ");
                 }
-                if (number >= 1_000 && number < 1_000_000)
-                {
-                    words.Append(_tens[numberOfDigits]);
-                    words.Append(" ");
-                    // Уменьшаем число
-                    number %= comparisonNumber;
-                }
-                else if (number >= 100 && number < 1_000)
-                {
-                    long firstDigitOfNumber = number / comparisonNumber;
-                    words.Append(_hundreds[firstDigitOfNumber]);
-                    words.Append(" ");
-                    // Уменьшаем число
-                    number %= comparisonNumber;
-                }
-                if (number >= 1_000_000)
-                {
-                    // Получаем цифру стоящую впереди числа
-                    long firstDigitOfNumber = number / comparisonNumber;                            
-                    words.Append(_units[firstDigitOfNumber]);
-                    words.Append(" ");
-                    words.Append(_numberOfDigitsInWords[numberOfDigits]);
-                    words.Append(" ");
-                    // Уменьшаем количество цифр и число
-                    number %= comparisonNumber;
-                }
+                number /= 1000;
+                groupIndex++;
             }
 
             return words.ToString();
@@ -114,9 +123,9 @@ namespace NumberToText.Extensions
         {
             if (value is IConvertible || value is decimal)
             {
-                sbyte numberOfDigits = CountDigitsOfIntegerNumber(value);
+                //sbyte numberOfDigits = CountDigitsOfIntegerNumber(value);
 
-                return IntegerNumberInWords(value, numberOfDigits);
+                return IntegerNumberInWords(value);
             }
             else
             {

@@ -1,4 +1,6 @@
-﻿namespace ConsoleAppTest
+﻿using NumberToText.Extensions;
+
+namespace ConsoleAppTest
 {
     /// <summary>
     /// основной класс для этого консольного приложения 
@@ -13,10 +15,10 @@
         /// to the console app.</param>
         private static void Main(string[] args)
         {
-            int number = 12456;
+            int number = -125_500_024;
 
-            //string value = number.ConvertNumberToText();
-            //Console.WriteLine(value);
+            string value = number.ConvertNumberToText();
+            Console.WriteLine(value);
         }
     }
 }
