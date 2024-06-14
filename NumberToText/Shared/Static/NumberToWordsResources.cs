@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace NumberToText.Shared.Static
 {
+    /// <summary>
+    /// Слова соответствующие цифрам
+    /// </summary>
     internal static class NumberToWordsResources
     {
         internal static readonly string[] Ones = { "ноль", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять" };
