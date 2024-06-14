@@ -1,4 +1,6 @@
-﻿using NumberToText.Extensions;
+﻿using NumberToText.Core;
+using NumberToText.Extensions;
+using NumberToText.Shared.Enum;
 
 namespace ConsoleAppTest
 {
@@ -15,10 +17,27 @@ namespace ConsoleAppTest
         /// to the console app.</param>
         private static void Main(string[] args)
         {
-            int number = -125_500_024;
+            WordDeclension wordDeclension = new();
 
-            string value = number.ConvertNumberToText();
-            Console.WriteLine(value);
+            // Склоняем слово "озеро" в родительный падеж
+            string word = "озеро";
+            Padezh padezh = Padezh.Genitive;
+
+            string declinedWord = wordDeclension.DeclineWord(word, padezh);
+
+            Console.WriteLine(declinedWord); // Вывод: "озера"
+
+            // Склоняем слово "море" в творительный падеж
+            word = "море";
+            padezh = Padezh.Instrumental;
+
+            declinedWord = wordDeclension.DeclineWord(word, padezh);
+
+            Console.WriteLine(declinedWord); // Вывод: "морем"
+            //int number = -125_500_024;
+
+            //string value = number.ConvertNumberToText();
+            //Console.WriteLine(value);
         }
     }
 }
