@@ -8,5 +8,6 @@ namespace NumberToText.Shared.Models
         public NumberForm NumberForm { get; set; }
         public Skloneniye Skloneniye { get; set; }
         public Padezh Padezh { get; set; }
+        public Gender Gender { get; set; }
     }
 }

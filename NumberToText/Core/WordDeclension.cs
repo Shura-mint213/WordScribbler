@@ -66,6 +66,30 @@ namespace NumberToText.Core
         {
             WordModelForDeclension model = new WordModelForDeclension();
 
+            // Определения числа (упрощенно)
+            if (IsDeclensionPlural(word, out string ending))
+            {
+                // Определения рода и склонения для множественного числа
+                model.Ending = ending;
+                model.NumberForm = NumberForm.Plural;
+
+                // Дополнительная логика для определения склонения в множественном числе
+                if (IsThirdDeclensionPlural(word))
+                {
+                    model.Skloneniye = Skloneniye.Third;
+                }
+                else if (IsFirstDeclensionPlural(word))
+                {
+                    model.Skloneniye = Skloneniye.First;
+                }
+                else
+                {
+                    model.Skloneniye = Skloneniye.Second;
+                }
+
+                return model;
+            }
+
             // Первое склонение (существительные женского рода на -а, -я) иминительного падежа
             if (word.EndsWith("а"))
             {
@@ -107,28 +131,7 @@ namespace NumberToText.Core
                 model.NumberForm = NumberForm.Singular;
                 model.Skloneniye = Skloneniye.Third;
                 return model;
-            }
-
-            // Определения числа (упрощенно)
-            if (word.EndsWith("ы") || word.EndsWith("и"))
-            {
-                // определения рода и склонения для множественного числа
-                // Более сложная логика может потребоваться для точного определения
-                model.Ending = word.EndsWith("ы") ? "ы" : "и";
-                model.NumberForm = NumberForm.Plural;
-
-                // Дополнительная логика для определения склонения в множественном числе
-                if (word.EndsWith("и") && IsThirdDeclensionPlural(word))
-                {
-                    model.Skloneniye = Skloneniye.Third;
-                }
-                else
-                {
-                    model.Skloneniye = Skloneniye.First; // или Second, в зависимости от слова
-                }
-
-                return model;
-            }
+            }            
 
             // Если не удалось определить склонение, число и род
             return null;
@@ -176,6 +179,29 @@ namespace NumberToText.Core
         }
 
         /// <summary>
+        /// Определяет, является ли слово множественным числом.
+        /// </summary>
+        /// <param name="word">Слово для проверки.</param>
+        /// <param name="ending">Окончание слова.</param>
+        /// <returns>True, если слово является множественным числом;
+        /// в противном случае — False.</returns>
+        private bool IsDeclensionPlural(string word, out string ending)
+        {
+            HashSet<string> endingsWords = new HashSet<string>();
+
+            foreach (var endings in DeclensionEndings.Values)
+            {
+                endingsWords.UnionWith(endings.Where(ending => ending.Length == 3));
+                endingsWords.UnionWith(endings.Where(ending => ending.Length == 2));
+                endingsWords.UnionWith(endings.Where(ending => ending.Length == 1));
+            }
+
+            ending = endingsWords.FirstOrDefault(word.EndsWith);
+
+            return ending != null;
+        }
+
+        /// <summary>
         /// Определяет, является ли слово множественным числом третьего склонения.
         /// </summary>
         /// <param name="word">Слово для проверки.</param>
@@ -183,9 +209,22 @@ namespace NumberToText.Core
         /// в противном случае — False.</returns>
         private bool IsThirdDeclensionPlural(string word)
         {
-            // Упрощенная логика для определения третьего склонения в множественном числе
-            // В реальности потребуется более сложный анализ
-            return word.EndsWith("и");
+            // Проверяем, заканчивается ли слово одним из окончаний
+            return DeclensionEndings.TryGetValue(Skloneniye.Third, out var value)
+                && value.Any(word.EndsWith);
+        }
+
+        /// <summary>
+        /// Определяет, является ли слово множественным числом первого склонения.
+        /// </summary>
+        /// <param name="word">Слово для проверки.</param>
+        /// <returns>True, если слово является множественным числом первого склонения;
+        /// в противном случае — False.</returns>
+        private bool IsFirstDeclensionPlural(string word)
+        {
+            // Проверяем, заканчивается ли слово одним из окончаний
+            return DeclensionEndings.TryGetValue(Skloneniye.First, out var value)
+                && value.Any(word.EndsWith);
         }
     }
 }
