@@ -6,27 +6,27 @@
     public enum Padezh : sbyte
     {
         /// <summary>
-        /// Именительный
+        /// Именительный (кто? что?)
         /// </summary>
         Nominative = 0,
         /// <summary>
-        /// Родительный
+        /// Родительный (кого? чего?)
         /// </summary>
         Genitive = 1,
         /// <summary>
-        /// Дательный
+        /// Дательный (кому? чему?)
         /// </summary>
         Dative = 2,
         /// <summary>
-        /// Винительный
+        /// Винительный (кого? что?)
         /// </summary>
         Accusative = 3,
         /// <summary>
-        /// Творительный
+        /// Творительный (кем? чем?)
         /// </summary>
         Instrumental = 4,
         /// <summary>
-        /// Предложный
+        /// Предложный (о ком? о чем?)
         /// </summary>
         Prepositional = 5,
     }

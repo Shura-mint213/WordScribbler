@@ -20,7 +20,7 @@ namespace ConsoleAppTest
             WordDeclension wordDeclension = new();
 
             // Склоняем слово "озеро" в родительный падеж
-            string word = "озеро";
+            string word = "страна";
             Padezh padezh = Padezh.Genitive;
 
             string declinedWord = wordDeclension.DeclineWord(word, padezh);
@@ -28,7 +28,7 @@ namespace ConsoleAppTest
             Console.WriteLine(declinedWord); // Вывод: "озера"
 
             // Склоняем слово "море" в творительный падеж
-            word = "море";
+            word = "страна";
             padezh = Padezh.Instrumental;
 
             declinedWord = wordDeclension.DeclineWord(word, padezh);

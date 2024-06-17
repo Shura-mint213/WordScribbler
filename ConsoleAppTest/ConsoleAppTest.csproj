@@ -18,6 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+    <PackageReference Include="Morfologik.Stemming" Version="2.1.7" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Sandesh.NumberToWord" Version="1.0.5" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">

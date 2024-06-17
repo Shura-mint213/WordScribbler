@@ -4,6 +4,7 @@ using NumberToText.Shared.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -44,46 +45,92 @@ namespace NumberToText.Core
         /// <returns>Склоненное слово.</returns>
         public string DeclineWord(string word, Padezh padezh)
         {
-            // Определяем склонение и форму числа слова
-            WordModelForDeclension currentEndingModel = FindEnding(word);
-
-            // Если окончание не найдено, возвращаем исходное слово
-            if (currentEndingModel == null)
+            var model = DetermineModel(word);
+            if (model == null)
             {
-                return word;
+                return word; // Если модель не определена, вернуть исходное слово
             }
 
-            // Создаем новую модель окончания с заданным падежом
-            WordModelForDeclension newEndingModel = new WordModelForDeclension
-            {
-                Skloneniye = currentEndingModel.Skloneniye,
-                Padezh = padezh,
-                NumberForm = currentEndingModel.NumberForm
-            };
+            model.Padezh = padezh;
 
-            // Склоняем слово
-            return DeclineWord(word, newEndingModel); // Рекурсивно вызываем метод с новой моделью окончания
+            return ReplaceEnding(word, model);
         }
 
         /// <summary>
-        /// Находит окончание в слове.
+        /// Определяет модель слова для склонения, включая окончание, число и склонение.
         /// </summary>
-        /// <param name="word">Слово, в котором нужно найти окончание.</param>
-        /// <returns>Модель окончания, если она найдена, иначе null.</returns>
-        private WordModelForDeclension FindEnding(string word)
+        /// <param name="word">Слово, для которого нужно определить модель.</param>
+        /// <returns>Модель слова для склонения или null, если не удалось определить модель.</returns>
+
+        private WordModelForDeclension DetermineModel(string word)
         {
-            // Проверяем, есть ли в словаре модели для окончаний
-            foreach (var endingModel in EndingModels)
+            WordModelForDeclension model = new WordModelForDeclension();
+
+            // Первое склонение (существительные женского рода на -а, -я) иминительного падежа
+            if (word.EndsWith("а"))
             {
-                // Проверяем, есть ли окончание в слове
-                if (word.EndsWith(endingModel.Ending))
-                {
-                    // Возвращаем модель окончания
-                    return endingModel;
-                }
+                model.Ending = "а";
+                model.NumberForm = NumberForm.Singular;
+                model.Skloneniye = Skloneniye.First;
+                return model;
             }
 
-            // Окончание не найдено
+            if (word.EndsWith("я"))
+            {
+                model.Ending = "я";
+                model.NumberForm = NumberForm.Singular;
+                model.Skloneniye = Skloneniye.First;
+                return model;
+            }
+
+            // Второе склонение (существительные мужского рода на твердый согласный, -о, -е) иминительного падежа
+            if (word.EndsWith("о") || word.EndsWith("е"))
+            {
+                model.Ending = word.EndsWith("о") ? "о" : "е";
+                model.NumberForm = NumberForm.Singular;
+                model.Skloneniye = Skloneniye.Second;
+                return model;
+            }
+
+            if (word.EndsWith("й") || word.EndsWith("ь"))
+            {
+                model.Ending = word.EndsWith("й") ? "й" : "ь";
+                model.NumberForm = NumberForm.Singular;
+                model.Skloneniye = Skloneniye.Second;
+                return model;
+            }
+
+            // Третье склонение (существительные женского рода на мягкий знак) иминительного падежа
+            if (word.EndsWith("ь") && IsFeminine(word))
+            {
+                model.Ending = "ь";
+                model.NumberForm = NumberForm.Singular;
+                model.Skloneniye = Skloneniye.Third;
+                return model;
+            }
+
+            // Определения числа (упрощенно)
+            if (word.EndsWith("ы") || word.EndsWith("и"))
+            {
+                // определения рода и склонения для множественного числа
+                // Более сложная логика может потребоваться для точного определения
+                model.Ending = word.EndsWith("ы") ? "ы" : "и";
+                model.NumberForm = NumberForm.Plural;
+
+                // Дополнительная логика для определения склонения в множественном числе
+                if (word.EndsWith("и") && IsThirdDeclensionPlural(word))
+                {
+                    model.Skloneniye = Skloneniye.Third;
+                }
+                else
+                {
+                    model.Skloneniye = Skloneniye.First; // или Second, в зависимости от слова
+                }
+
+                return model;
+            }
+
+            // Если не удалось определить склонение, число и род
             return null;
         }
 
@@ -91,43 +138,54 @@ namespace NumberToText.Core
         /// Заменяет окончание в слове на новое.
         /// </summary>
         /// <param name="word">Слово, в котором нужно заменить окончание.</param>
-        /// <param name="newEnding">Новое окончание.</param>
-        /// <param name="endingModel">Модель окончания, которое нужно заменить.</param>
+        /// <param name="model">Модель окончания, на которое нужно заменить.</param>
         /// <returns>Слово с измененным окончанием.</returns>
-        private string ReplaceEnding(string word, string newEnding, WordModelForDeclension endingModel)
+        private string ReplaceEnding(string word, WordModelForDeclension model)
         {
-            // Удаляем старое окончание
-            string wordWithoutEnding = word.Substring(0, word.Length - endingModel.Ending.Length);
-
-            // Добавляем новое окончание
-            return wordWithoutEnding + newEnding;
+            string root = word.Substring(0, word.Length - model.Ending.Length);
+            if (Endings.TryGetValue((model.Skloneniye, model.NumberForm, model.Padezh), out string newEnding))
+            {
+                return root + newEnding;
+            }
+            return word; // Если окончание не найдено, вернуть исходное слово
         }
 
         /// <summary>
-        /// Склоняет слово в заданный падеж, используя модель окончания.
+        /// Определяет, является ли слово женского рода.
         /// </summary>
-        /// <param name="word">Слово, которое нужно склонить.</param>
-        /// <param name="newEndingModel">Модель окончания, которую нужно применить к слову.</param>
-        /// <returns>Склоненное слово.</returns>
-        private string DeclineWord(string word, WordModelForDeclension newEndingModel)
+        /// <param name="word">Слово для проверки.</param>
+        /// <returns>True, если слово является женского рода;
+        /// в противном случае — False.</returns>
+        private bool IsFeminine(string word)
         {
-            // Находим подходящее окончание из списка
-            var currentEnding = EndingModels.FirstOrDefault(
-                x => x.Skloneniye == newEndingModel.Skloneniye &&
-                     x.Padezh == newEndingModel.Padezh &&
-                     x.NumberForm == newEndingModel.NumberForm
-            );
+            // Упрощенная логика для определения женского рода
+            // В реальности потребуется более сложный анализ
+            // Например, можно использовать словари или базы данных
+            return word.EndsWith("ь") && word.Length > 1 && IsVowel(word[word.Length - 2]);
+        }
 
-            if (currentEnding != null)
-            {
-                // Заменяем окончание
-                return ReplaceEnding(word, newEndingModel.Ending, currentEnding);
-            }
-            else
-            {
-                // Не найдено подходящего окончания, возвращаем исходное слово
-                return word;
-            }
+        /// <summary>
+        /// Определяет, является ли буква гласной.
+        /// </summary>
+        /// <param name="c">Буква для проверки.</param>
+        /// <returns>True, если буква является гласной;
+        /// в противном случае — False.</returns>
+        private bool IsVowel(char c)
+        {
+            return "аеёиоуыэюя".IndexOf(c) >= 0;
+        }
+
+        /// <summary>
+        /// Определяет, является ли слово множественным числом третьего склонения.
+        /// </summary>
+        /// <param name="word">Слово для проверки.</param>
+        /// <returns>True, если слово является множественным числом третьего склонения;
+        /// в противном случае — False.</returns>
+        private bool IsThirdDeclensionPlural(string word)
+        {
+            // Упрощенная логика для определения третьего склонения в множественном числе
+            // В реальности потребуется более сложный анализ
+            return word.EndsWith("и");
         }
     }
 }
