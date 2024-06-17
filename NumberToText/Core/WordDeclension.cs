@@ -32,9 +32,20 @@ namespace NumberToText.Core
             foreach (string word in words)
             {
                 sb.Append(DeclineWord(word, padezh));
+                sb.Append(" ");
             }
 
             return sb.ToString();
+        }
+
+        private string[] GetWordsFromText(string text)
+        {
+            // Используем регулярное выражение для выделения слов
+            string pattern = @"\b\w+\b"; // \b - граница слова, \w - любой буквенно-цифровой символ
+            MatchCollection matches = Regex.Matches(text, pattern);
+
+            // Извлекаем текст из совпадений и возвращаем массив слов
+            return matches.Cast<Match>().Select(m => m.Value).ToArray();
         }
 
         /// <summary>
@@ -50,18 +61,20 @@ namespace NumberToText.Core
             {
                 return word; // Если модель не определена, вернуть исходное слово
             }
+            Gender gender = DetermineGender(word);
 
+            model.Gender = gender;
             model.Padezh = padezh;
 
             return ReplaceEnding(word, model);
         }
+
 
         /// <summary>
         /// Определяет модель слова для склонения, включая окончание, число и склонение.
         /// </summary>
         /// <param name="word">Слово, для которого нужно определить модель.</param>
         /// <returns>Модель слова для склонения или null, если не удалось определить модель.</returns>
-
         private WordModelForDeclension DetermineModel(string word)
         {
             WordModelForDeclension model = new WordModelForDeclension();
@@ -138,6 +151,38 @@ namespace NumberToText.Core
         }
 
         /// <summary>
+        /// Определяет род слова на основе простых правил, основанных на окончании слова.
+        /// </summary>
+        /// <param name="word">Слово для определения рода.</param>
+        /// <returns>Род слова (Masculine, Feminine, Neuter).</returns>
+        private Gender DetermineGender(string word)
+        {
+            // Упрощенные правила определения рода на основе окончания слова
+
+            // Женский род
+            if (word.EndsWith("а") || word.EndsWith("я"))
+            {
+                return Gender.Feminine;
+            }
+
+            // Мужской род
+            if (word.EndsWith("й") || word.EndsWith("ь") || !IsVowel(word[word.Length - 1]))
+            {
+                return Gender.Masculine;
+            }
+
+            // Средний род
+            if (word.EndsWith("о") || word.EndsWith("е"))
+            {
+                return Gender.Neuter;
+            }
+
+            // Дополнительные правила могут быть добавлены здесь
+            // Если род не определен, возвращаем мужской род как общий случай
+            return Gender.Masculine;
+        }
+
+        /// <summary>
         /// Заменяет окончание в слове на новое.
         /// </summary>
         /// <param name="word">Слово, в котором нужно заменить окончание.</param>
@@ -146,7 +191,7 @@ namespace NumberToText.Core
         private string ReplaceEnding(string word, WordModelForDeclension model)
         {
             string root = word.Substring(0, word.Length - model.Ending.Length);
-            if (Endings.TryGetValue((model.Skloneniye, model.NumberForm, model.Padezh), out string newEnding))
+            if (Endings.TryGetValue((model.Skloneniye, model.NumberForm, model.Padezh, model.Gender), out string newEnding))
             {
                 return root + newEnding;
             }

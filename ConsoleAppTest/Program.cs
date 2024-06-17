@@ -19,25 +19,29 @@ namespace ConsoleAppTest
         {
             WordDeclension wordDeclension = new();
 
-            // Склоняем слово "озеро" в родительный падеж
-            string word = "ноч";
-            Padezh padezh = Padezh.Genitive;
+            //// Склоняем слово "озеро" в родительный падеж
+            //string word = "ноч";
+            //Padezh padezh = Padezh.Genitive;
 
-            string declinedWord = wordDeclension.DeclineWord(word, padezh);
+            //string declinedWord = wordDeclension.DeclineWord(word, padezh);
 
-            Console.WriteLine(declinedWord); // Вывод: "озера"
+            //Console.WriteLine(declinedWord); // Вывод: "озера"
 
-            // Склоняем слово "море" в творительный падеж
-            word = "домами";
-            padezh = Padezh.Genitive;
+            //// Склоняем слово "море" в творительный падеж
+            //word = "домами";
+            //padezh = Padezh.Genitive;
 
-            declinedWord = wordDeclension.DeclineWord(word, padezh);
+            //declinedWord = wordDeclension.DeclineWord(word, padezh);
 
-            Console.WriteLine(declinedWord); // Вывод: "морем"
-            //int number = -125_500_024;
+            //Console.WriteLine(declinedWord); // Вывод: "морем"
+            int number = -125_500_024;
 
-            //string value = number.ConvertNumberToText();
-            //Console.WriteLine(value);
+            string value = number.ConvertNumberToText();
+            Console.WriteLine(value);
+
+            var numberText = wordDeclension.DeclineWords(value, Padezh.Genitive);
+
+            Console.WriteLine(numberText);
         }
     }
 }
