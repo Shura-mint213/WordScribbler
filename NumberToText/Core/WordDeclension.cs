@@ -8,7 +8,9 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 using static NumberToText.Shared.Static.EndingsOfWords;
+using static NumberToText.Shared.Static.WordExceptions;
 
 namespace NumberToText.Core
 {
@@ -56,6 +58,11 @@ namespace NumberToText.Core
         /// <returns>Склоненное слово.</returns>
         public string DeclineWord(string word, Padezh padezh)
         {
+            if (NonDeclensionWords.Contains(word))
+            {
+                return word; // Если слово несклоняемое, возвращаем его без изменений
+            }
+
             var model = DetermineModel(word);
             if (model == null)
             {
